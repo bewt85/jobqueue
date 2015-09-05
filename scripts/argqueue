@@ -1,0 +1,22 @@
+#!/usr/bin/env python
+
+import logging
+
+from argqueue.parser import get_arguments
+
+def put(args):
+  for arguments in args.arguments:
+    logging.debug("Adding the following arguments: '%s'" % arguments)
+
+def pop(args):
+  logging.debug("Popping some arguments")
+
+if __name__ == '__main__':
+  logging.basicConfig(level=logging.DEBUG)
+  args = get_arguments()
+  func_lookup = {
+    'pop': pop,
+    'put': put
+  }
+  func = func_lookup[args.sub_command]
+  func(args)
