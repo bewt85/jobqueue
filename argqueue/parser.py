@@ -57,7 +57,7 @@ class ExtraArguments(argparse.Action):
 
 def build_parser():
   parser = argparse.ArgumentParser()
-  parser.add_argument('-d', '--database', type=argparse.FileType('w'),
+  parser.add_argument('-d', '--database', type=argparse.FileType('ab'),
                       default=open('.argumentsQueue', 'ab'))
   subparsers = parser.add_subparsers(help='sub-command help')
 
