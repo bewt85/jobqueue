@@ -55,7 +55,7 @@ class ExtraArguments(argparse.Action):
       setattr(namespace, self.dest, [])
       setattr(namespace, 'source', None)
 
-def get_arguments():
+def build_parser():
   parser = argparse.ArgumentParser()
   parser.add_argument('-d', '--database', type=argparse.FileType('w'),
                       default=open('.argumentsQueue', 'ab'))
@@ -70,11 +70,13 @@ def get_arguments():
 
   pop_parser = subparsers.add_parser('pop')
   pop_parser.set_defaults(sub_command='pop')
+  return parser
 
+def get_arguments():
+  parser = build_parser()
   args, leftovers = parser.parse_known_args()
   try:
     args.merge_leftovers(args, leftovers)
   except AttributeError:
     pass
-  
   return args
