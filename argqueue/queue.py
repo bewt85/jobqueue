@@ -45,7 +45,10 @@ class Queue(object):
         cur.execute("SELECT Args, Status, Timeout "
                     "FROM Arguments "
                     "WHERE Id=?", (arg_id,))
-        (args, _status, timeout) = cur.fetchone()
+        try:
+          (args, _status, timeout) = cur.fetchone()
+        except TypeError:
+          raise ValueError("Could not find arguments with id '%s'" % arg_id)
         if _status == 'LEASED' and timeout != 0 and timeout < int(time.time()):
           _status = 'TIMEDOUT'
         return _status
@@ -60,7 +63,10 @@ class Queue(object):
       cur = self.con.cursor()
       cur.execute("SELECT (Args) FROM Arguments "
                   "WHERE Id=?", (arg_id,))
-      (args,) = cur.fetchone()
+      try:
+        (args,) = cur.fetchone()
+      except TypeError:
+        raise ValueError("Could not find arguments with id '%s'" % arg_id)
       return args
 
   def put(self, arguments):
