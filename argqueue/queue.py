@@ -1,4 +1,5 @@
 import sqlite3 as sql
+import time
 
 class Queue(object):
   def __init__(self, db_filename):
@@ -10,34 +11,36 @@ class Queue(object):
       cur = self.con.cursor()
       cur.execute("CREATE TABLE IF NOT EXISTS "
                   "Arguments(Id INTEGER PRIMARY KEY AUTOINCREMENT, "
-                            "Args TEXT, Status TEXT, "
-                            "Created INTEGER)")
-      cur.execute("CREATE TABLE IF NOT EXISTS "
-                  "Leases(Id INTEGER PRIMARY KEY AUTOINCREMENT, "
-                         "Created INTEGER NOT NULL, "
-                         "Expires INTEGER NOT NULL, "
-                         "Status TEXT DEFAULT 'LET', "
-                         "ArgumentsId INTEGER NOT NULL, "
-                         "FOREIGN KEY(ArgumentsId) REFERENCES Arguments(Id))")
+                            "Args TEXT NOT NULL, "
+                            "Created INTEGER NOT NULL, "
+                            "Status TEXT DEFAULT 'PENDING', "
+                            "Timeout INTEGER DEFAULT 0)")
 
-  def _create_lease(self, arg_id, timeout):
+  def lease(self, timeout=3600):
+    arg_id, args = self._pop_with_id(update='LEASED', timeout=timeout)
+    return arg_id
+
+  def status(self, arg_id, update=None):
     with self.con:
       cur = self.con.cursor()
-      cur.execute("INSERT INTO Leases (Created, Expires, ArgumentsId) "
-                  "VALUES (strftime('%s', 'now'), "
-                          "strftime('%s', 'now') + ?, "
-                          "?)", (timeout, arg_id))
-
-  def lease(self):
-    arg_id, args = self._pop_with_id(status='LEASED')
-    self._create_lease(arg_id, 3600)
-    return arg_id
+      if update is None:
+        cur.execute("SELECT Args, Status, Timeout "
+                    "FROM Arguments "
+                    "WHERE Id=?", (arg_id,))
+        (args, _status, timeout) = cur.fetchone()
+        if _status == 'LEASED' and timeout != 0 and timeout < int(time.time()):
+          _status = 'TIMEDOUT'
+        return _status
+      else:
+        cur.execute("UPDATE Arguments "
+                    "SET Status=? "
+                    "WHERE Id=?", (update, arg_id))
+        return update
 
   def get(self, arg_id):
     with self.con:
       cur = self.con.cursor()
-      cur.execute("SELECT (Args) "
-                  "FROM Arguments "
+      cur.execute("SELECT (Args) FROM Arguments "
                   "WHERE Id=?", (arg_id,))
       (args,) = cur.fetchone()
       return args
@@ -48,19 +51,31 @@ class Queue(object):
       cur.execute("INSERT INTO Arguments (Args, Status, Created) "
                   "VALUES (?,'PENDING', strftime('%s', 'now'))", (arguments,))
 
-  def _pop_with_id(self, status='UNKNOWN'):
+  def _pop_with_id(self, update='UNKNOWN', timeout=None):
     with self.con:
       cur = self.con.cursor()
       cur.execute("BEGIN EXCLUSIVE")
-      cur.execute("SELECT Id,Args FROM Arguments WHERE Status='PENDING' "
-                  "ORDER BY Id LIMIT 1")
+      cur.execute("SELECT Id, Args FROM Arguments WHERE "
+                  "  Status='PENDING' OR ("
+                  "    Status='LEASED' AND"
+                  "    Timeout<strftime('%s', 'now') AND"
+                  "    Timeout IS NOT 0"
+                  "  )")
       try:
         row_id, args = cur.fetchone()
       except TypeError:
         raise Exception("No more arguments to pop")
-      cur.execute("UPDATE Arguments SET Status=? WHERE Id=?", (status, row_id))
+      if timeout is None:
+        cur.execute("UPDATE Arguments SET "
+                    "  Status=? "
+                    "WHERE Id=?", (update, row_id))
+      else:
+        cur.execute("UPDATE Arguments SET "
+                    "  Status=?, "
+                    "  Timeout=strftime('%s', 'now') + ? "
+                    "WHERE Id=?", (update, timeout, row_id))
       return row_id, args
 
-  def pop(self, status='UNKNOWN'):
-    row_id, args = self._pop_with_id(status=status)
+  def pop(self, update='UNKNOWN'):
+    row_id, args = self._pop_with_id(update=update)
     return args
