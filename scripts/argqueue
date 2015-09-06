@@ -27,7 +27,7 @@ def pop(queue, args):
   print queue.pop()
 
 if __name__ == '__main__':
-  logging.basicConfig(level=logging.DEBUG)
+  logging.basicConfig(level=logging.WARN)
   args = get_arguments()
   queue = Queue(args.database.name)
   func_lookup = {

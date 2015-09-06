@@ -56,33 +56,50 @@ class ExtraArguments(argparse.Action):
       setattr(namespace, 'source', None)
 
 def build_parser():
-  parser = argparse.ArgumentParser()
+  parser = argparse.ArgumentParser(description="Persistent queue of arguments")
   parser.add_argument('-d', '--database', type=argparse.FileType('ab'),
-                      default=open('.argumentsQueue', 'ab'))
-  subparsers = parser.add_subparsers(help='sub-command help')
+                      default=open('.argumentsQueue', 'ab'),
+                      help="Path the queue database (default: .argumentsQueue)")
+  subparsers = parser.add_subparsers(help='sub-commands')
 
-  done_parser = subparsers.add_parser('done')
-  done_parser.add_argument('args_id', type=int, metavar='id')
+  done_parser = subparsers.add_parser('done',
+                                      help="Mark arguments as 'done'",
+                                      description="Used to mark arguments as 'done'")
+  done_parser.add_argument('args_id', type=int, metavar='id',
+                           help="id as given by lease or used by get")
   done_parser.set_defaults(sub_command='done')
 
-  exit_parser = subparsers.add_parser('exit')
-  exit_parser.add_argument('args_id', type=int, metavar='id')
+  exit_parser = subparsers.add_parser('exit',
+                                      help="Mark arguments as 'exit'",
+                                      description="Used to mark arguments as 'exit'")
+  exit_parser.add_argument('args_id', type=int, metavar='id',
+                           help="id as given by lease or used by get")
   exit_parser.set_defaults(sub_command='exit')
 
-  get_parser = subparsers.add_parser('get')
-  get_parser.add_argument('args_id', type=int, metavar='id')
+  get_parser = subparsers.add_parser('get',
+                                     help="Get arguments for given id",
+                                     description="Used to get arguments specified by 'id'")
+  get_parser.add_argument('args_id', type=int, metavar='id',
+                          help="id as given by lease")
   get_parser.set_defaults(sub_command='get')
 
-  lease_parser = subparsers.add_parser('lease')
+  lease_parser = subparsers.add_parser('lease',
+                                      help="Lease some arguments to use with 'get'",
+                                      description="Lease some arguments and get their 'id' of some arguments")
+
   lease_parser.add_argument('-t', '--timeout', type=int,
-                            help="lease timeout in seconds",
+                            help="Lease timeout in seconds (default: 1 hour)",
                             default=3600)
   lease_parser.set_defaults(sub_command='lease')
 
-  pop_parser = subparsers.add_parser('pop')
+  pop_parser = subparsers.add_parser('pop',
+                                     help="Pop next available arguments",
+                                     description="Get the next arguments.  It's better to lease them if possible though")
   pop_parser.set_defaults(sub_command='pop')
 
-  put_parser = subparsers.add_parser('put')
+  put_parser = subparsers.add_parser('put',
+                                     help="Add arguments to the queue",
+                                     description="Add arguments to the queue")
   put_parser.add_argument('arguments', type=str, action=ExtraArguments,
                           nargs=argparse.REMAINDER,
                           metavar="...",
