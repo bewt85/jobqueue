@@ -2,28 +2,28 @@
 
 import logging
 
-from argqueue.parser import get_arguments
-from argqueue.queue import Queue
+from jobqueue.parser import get_arguments
+from jobqueue.queue import Queue
 
 def done(queue, args):
-  queue.status(args.args_id, update='DONE')
+  queue.status(args.job_id, update='DONE')
 
 def exit_command(queue, args):
-  queue.status(args.args_id, update='EXIT')
+  queue.status(args.job_id, update='EXIT')
 
 def get(queue, args):
-  print queue.get(args.args_id)
+  print queue.get(args.job_id)
 
 def lease(queue, args):
   print queue.lease(timeout=args.timeout)
 
 def put(queue, args):
-  for arguments in args.arguments:
-    logging.debug("Adding the following arguments: '%s'" % arguments)
-    queue.put(arguments)
+  for job in args.jobs:
+    logging.debug("Adding the following job: '%s'" % job)
+    queue.put(job)
 
 def pop(queue, args):
-  logging.debug("Popping some arguments")
+  logging.debug("Popping a job")
   print queue.pop()
 
 if __name__ == '__main__':

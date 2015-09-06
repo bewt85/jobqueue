@@ -3,12 +3,12 @@ from setuptools import setup
 __version__ = '0.1.0'
 
 setup(
-  name='argqueue',
+  name='jobqueue',
   version=__version__,
   licence='MIT',
   install_requires=[],
-  test_suite='argqueue.tests',
+  test_suite='jobqueue.tests',
   tests_require=[],
-  packages=['argqueue'],
-  scripts=['scripts/argqueue']
+  packages=['jobqueue'],
+  scripts=['scripts/jobqueue']
 )
