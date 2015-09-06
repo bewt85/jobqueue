@@ -20,6 +20,24 @@ class Queue(object):
     arg_id, args = self._pop_with_id(update='LEASED', timeout=timeout)
     return arg_id
 
+  def list(self, statuses=None):
+    with self.con:
+      cur = self.con.cursor()
+      cur.execute("SELECT Args, Status, Timeout "
+                  "FROM Arguments")
+      rows = cur.fetchall()
+    def _update_status(status):
+      (args, status, timeout) = status
+      if status == 'LEASED' and timeout != 0 and timeout < int(time.time()):
+        status = 'TIMEDOUT'
+      return (args, status, timeout)
+    rows = map(_update_status, rows)
+    if statuses is None:
+      return rows
+    else:
+      return [(args, status, timeout) for args, status, timeout in rows
+              if status in statuses]
+
   def status(self, arg_id, update=None):
     with self.con:
       cur = self.con.cursor()
