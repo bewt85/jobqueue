@@ -3,20 +3,24 @@
 import logging
 
 from argqueue.parser import get_arguments
+from argqueue.queue import Queue
 
-def put(args):
+def put(queue, args):
   for arguments in args.arguments:
     logging.debug("Adding the following arguments: '%s'" % arguments)
+    queue.put(arguments)
 
-def pop(args):
+def pop(queue, args):
   logging.debug("Popping some arguments")
+  print queue.pop()
 
 if __name__ == '__main__':
   logging.basicConfig(level=logging.DEBUG)
   args = get_arguments()
+  queue = Queue(args.database.name)
   func_lookup = {
     'pop': pop,
     'put': put
   }
   func = func_lookup[args.sub_command]
-  func(args)
+  func(queue, args)
