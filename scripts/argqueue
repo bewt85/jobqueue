@@ -5,6 +5,18 @@ import logging
 from argqueue.parser import get_arguments
 from argqueue.queue import Queue
 
+def done(queue, args):
+  queue.status(args.args_id, update='DONE')
+
+def exit_command(queue, args):
+  queue.status(args.args_id, update='EXIT')
+
+def get(queue, args):
+  print queue.get(args.args_id)
+
+def lease(queue, args):
+  print queue.lease(timeout=args.timeout)
+
 def put(queue, args):
   for arguments in args.arguments:
     logging.debug("Adding the following arguments: '%s'" % arguments)
@@ -19,6 +31,10 @@ if __name__ == '__main__':
   args = get_arguments()
   queue = Queue(args.database.name)
   func_lookup = {
+    'done': done,
+    'exit': exit_command,
+    'get': get,
+    'lease': lease,
     'pop': pop,
     'put': put
   }

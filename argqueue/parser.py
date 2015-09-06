@@ -61,6 +61,27 @@ def build_parser():
                       default=open('.argumentsQueue', 'ab'))
   subparsers = parser.add_subparsers(help='sub-command help')
 
+  done_parser = subparsers.add_parser('done')
+  done_parser.add_argument('args_id', type=int, metavar='id')
+  done_parser.set_defaults(sub_command='done')
+
+  exit_parser = subparsers.add_parser('exit')
+  exit_parser.add_argument('args_id', type=int, metavar='id')
+  exit_parser.set_defaults(sub_command='exit')
+
+  get_parser = subparsers.add_parser('get')
+  get_parser.add_argument('args_id', type=int, metavar='id')
+  get_parser.set_defaults(sub_command='get')
+
+  lease_parser = subparsers.add_parser('lease')
+  lease_parser.add_argument('-t', '--timeout', type=int,
+                            help="lease timeout in seconds",
+                            default=3600)
+  lease_parser.set_defaults(sub_command='lease')
+
+  pop_parser = subparsers.add_parser('pop')
+  pop_parser.set_defaults(sub_command='pop')
+
   put_parser = subparsers.add_parser('put')
   put_parser.add_argument('arguments', type=str, action=ExtraArguments,
                           nargs=argparse.REMAINDER,
@@ -68,8 +89,6 @@ def build_parser():
                           help="Arguments here or via stdin but not both")
   put_parser.set_defaults(sub_command='put', merge_leftovers=build_merger(put_parser))
 
-  pop_parser = subparsers.add_parser('pop')
-  pop_parser.set_defaults(sub_command='pop')
   return parser
 
 def get_arguments():
