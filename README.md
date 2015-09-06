@@ -1,5 +1,7 @@
 # Jobqueue
 
+[![Build Status](https://travis-ci.org/bewt85/jobqueue.svg?branch=master)](https://travis-ci.org/bewt85/jobqueue)
+
 Queue up jobs to be run later.
 
 Jobqueue can be used to simpy 'put' and 'pop' jobs to run later.
@@ -31,7 +33,10 @@ else
 fi
 ```
 
-# Database layout
+## Database layout
+
+Jobs are stored in sqlite as follows:
+
 ```
 $ echo "SELECT * FROM Jobs;" | sqlite3 .jobsQueue -cmd ".header on"
 Id|Details|Created|Status|Timeout
