@@ -15,21 +15,21 @@ whether they were OK, failed or timed out.
 ## Usage
 
 ```
-# Load up some arguments
+# Load up some jobs
 jobqueue put echo foo
 echo 'echo bar "baz quux"' | jobqueue put
 
 # Simple pop
-$(jobqueue pop)
+$(jobqueue pop) # outputs: 'foo'
 
 # Lease example
-arg_id=$(jobqueue lease -t 20) # lease some arguments for 20s
-$(jobqueue get $arg_id)
+job_id=$(jobqueue lease -t 20) # lease a job for 20s
+$(jobqueue get $job_id) # outputs: 'bar "baz quux"'
 status=$?
 if [[ $status -eq 0 ]]; then
-  jobqueue done $arg_id
+  jobqueue done $job_id
 else
-  jobqueue exit $arg_id
+  jobqueue exit $job_id
 fi
 ```
 
