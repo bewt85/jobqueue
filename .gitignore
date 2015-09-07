@@ -2,5 +2,5 @@ venv
 *.pyc
 *~
 *.swp
-.argumentsQueue
+.jobsQueue
 *.egg-info/
