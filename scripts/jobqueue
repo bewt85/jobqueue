@@ -26,6 +26,15 @@ def pop(queue, args):
   logging.debug("Popping a job")
   print queue.pop()
 
+def status(queue, args):
+  jobs = queue.list()
+  if args.job_ids:
+    jobs = [(job, status, timeout) for ob, status, timeout in jobs
+            if job in args.job_ids]
+  print "\t".join(['id', 'status', 'timeout'])
+  for job in jobs:
+    print "\t".join(map(str, job))
+
 if __name__ == '__main__':
   logging.basicConfig(level=logging.WARN)
   args = get_arguments()
@@ -36,7 +45,8 @@ if __name__ == '__main__':
     'get': get,
     'lease': lease,
     'pop': pop,
-    'put': put
+    'put': put,
+    'status': status
   }
   func = func_lookup[args.sub_command]
   func(queue, args)

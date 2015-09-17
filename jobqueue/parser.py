@@ -106,6 +106,13 @@ def build_parser():
                           help="Job details here or via stdin but not both")
   put_parser.set_defaults(sub_command='put', merge_leftovers=build_merger(put_parser))
 
+  status_parser = subparsers.add_parser('status',
+                                        help="List the status of jobs",
+                                        description="List the status of jobs")
+  status_parser.add_argument('job_ids', nargs='*',
+                             help="List of jobs you want the status of (default: all jobs)")
+  status_parser.set_defaults(sub_command='status')
+
   return parser
 
 def get_arguments():
