@@ -29,9 +29,9 @@ def pop(queue, args):
 def status(queue, args):
   jobs = queue.list()
   if args.job_ids:
-    jobs = [(job, status, timeout) for ob, status, timeout in jobs
+    jobs = [(job_id, job, status, timeout) for ob, status, timeout in jobs
             if job in args.job_ids]
-  print "\t".join(['id', 'status', 'timeout'])
+  print "\t".join(['id', 'job', 'status', 'timeout'])
   for job in jobs:
     print "\t".join(map(str, job))
 

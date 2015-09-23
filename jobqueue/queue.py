@@ -23,19 +23,19 @@ class Queue(object):
   def list(self, statuses=None):
     with self.con:
       cur = self.con.cursor()
-      cur.execute("SELECT Details, Status, Timeout "
+      cur.execute("SELECT Id, Details, Status, Timeout "
                   "FROM Jobs")
       rows = cur.fetchall()
     def _update_status(status):
-      (job, status, timeout) = status
+      (job_id, job, status, timeout) = status
       if status == 'LEASED' and timeout != 0 and timeout < int(time.time()):
         status = 'TIMEDOUT'
-      return (job, status, timeout)
+      return (job_id, job, status, timeout)
     rows = map(_update_status, rows)
     if statuses is None:
       return rows
     else:
-      return [(job, status, timeout) for job, status, timeout in rows
+      return [(job_id, job, status, timeout) for job_id, job, status, timeout in rows
               if status in statuses]
 
   def status(self, job_id, update=None):
