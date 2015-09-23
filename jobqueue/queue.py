@@ -16,8 +16,11 @@ class Queue(object):
                         "Status TEXT DEFAULT 'PENDING', "
                         "Timeout INTEGER DEFAULT 0)")
 
-  def lease(self, timeout=3600):
-    job_id, job = self._pop_with_id(update='LEASED', timeout=timeout)
+  def lease(self, timeout=3600, job_id=None):
+    if job_id == None:
+      job_id, job = self._pop_with_id(update='LEASED', timeout=timeout)
+    else:
+      job_id, job = self._pop_with_id(job_id=job_id, update='LEASED', timeout=timeout)
     return job_id
 
   def list(self, statuses=None):
@@ -75,30 +78,34 @@ class Queue(object):
       cur.execute("INSERT INTO Jobs (Details, Status, Created) "
                   "VALUES (?,'PENDING', strftime('%s', 'now'))", (jobs,))
 
-  def _pop_with_id(self, update='UNKNOWN', timeout=None):
+  def _pop_with_id(self, job_id=None, update='UNKNOWN', timeout=None):
     with self.con:
       cur = self.con.cursor()
       cur.execute("BEGIN EXCLUSIVE")
-      cur.execute("SELECT Id, Details FROM Jobs WHERE "
-                  "  Status='PENDING' OR ("
-                  "    Status='LEASED' AND"
-                  "    Timeout<strftime('%s', 'now') AND"
-                  "    Timeout IS NOT 0"
-                  "  )")
+      if job_id:
+        cur.execute("SELECT Id, Details FROM Jobs WHERE "
+                    "  Id=?", (job_id,))
+      else:
+        cur.execute("SELECT Id, Details FROM Jobs WHERE "
+                    "  Status='PENDING' OR ("
+                    "    Status='LEASED' AND"
+                    "    Timeout<strftime('%s', 'now') AND"
+                    "    Timeout IS NOT 0"
+                    "  )")
       try:
-        row_id, job = cur.fetchone()
+        job_id, job = cur.fetchone()
       except TypeError:
         raise Exception("No more jobs to pop")
       if timeout is None:
         cur.execute("UPDATE Jobs SET "
                     "  Status=? "
-                    "WHERE Id=?", (update, row_id))
+                    "WHERE Id=?", (update, job_id))
       else:
         cur.execute("UPDATE Jobs SET "
                     "  Status=?, "
                     "  Timeout=strftime('%s', 'now') + ? "
-                    "WHERE Id=?", (update, timeout, row_id))
-      return row_id, job
+                    "WHERE Id=?", (update, timeout, job_id))
+      return job_id, job
 
   def pop(self, update='UNKNOWN'):
     row_id, job = self._pop_with_id(update=update)

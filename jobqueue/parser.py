@@ -90,6 +90,9 @@ def build_parser():
   lease_parser.add_argument('-t', '--timeout', type=int,
                             help="Lease timeout in seconds (default: 1 hour)",
                             default=3600)
+  lease_parser.add_argument('job_id', type=int,
+                            help="Optional: re-lease a job",
+                            nargs="?")
   lease_parser.set_defaults(sub_command='lease')
 
   pop_parser = subparsers.add_parser('pop',

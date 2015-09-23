@@ -15,7 +15,10 @@ def get(queue, args):
   print queue.get(args.job_id)
 
 def lease(queue, args):
-  print queue.lease(timeout=args.timeout)
+  if args.job_id:
+    print queue.lease(job_id=args.job_id, timeout=args.timeout)
+  else:
+    print queue.lease(timeout=args.timeout)
 
 def put(queue, args):
   for job in args.jobs:
